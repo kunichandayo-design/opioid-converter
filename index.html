@@ -94,6 +94,20 @@ body { font-family: -apple-system, 'Hiragino Sans', 'Yu Gothic UI', 'Meiryo', sa
 
 .empty-state { text-align: center; padding: 2.5rem 1rem; color: #94a3b8; font-size: 13px; }
 
+/* Result tabs */
+.result-tabs { display: flex; gap: 8px; margin-bottom: 12px; }
+.result-tab {
+  flex: 1; padding: 12px 14px;
+  background: white; border: 0.5px solid #e2e8f0; border-radius: 10px;
+  font-size: 13px; font-weight: 500; color: #64748b; cursor: pointer;
+  font-family: inherit; text-align: center; transition: all 0.15s;
+  display: flex; align-items: center; justify-content: center; gap: 6px;
+}
+.result-tab:hover:not(.active) { background: #f8fafc; }
+.result-tab.active { background: #0d6e63; color: white; border-color: #0d6e63; box-shadow: 0 2px 8px rgba(13,110,99,0.18); }
+.tab-content { animation: fadeIn 0.18s ease; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(-2px); } to { opacity: 1; transform: none; } }
+
 /* SC composition */
 .sc-card-wrap { background: white; border-radius: 12px; border: 0.5px solid #e2e8f0; padding: 1.2rem 1.3rem; margin-bottom: 12px; }
 .sc-card-wrap h3 { font-size: 14px; font-weight: 600; color: #1e3a5f; margin-bottom: 10px; padding-bottom: 9px; border-bottom: 0.5px solid #f1f5f9; display: flex; align-items: center; gap: 6px; }
@@ -124,6 +138,26 @@ body { font-family: -apple-system, 'Hiragino Sans', 'Yu Gothic UI', 'Meiryo', sa
 .sc-metric-value small { font-size: 10px; color: #94a3b8; font-weight: 400; margin-left: 1px; }
 .sc-metric-sub { font-size: 9.5px; color: #94a3b8; margin-top: 2px; }
 .sc-warn-msg { font-size: 12px; color: #92400e; padding: 10px 12px; background: white; border: 0.5px solid #fde68a; border-radius: 6px; line-height: 1.7; }
+
+/* Order text block */
+.sc-order { margin-top: 12px; padding-top: 12px; border-top: 0.5px dashed #e2e8f0; }
+.sc-order-label { font-size: 10.5px; color: #64748b; letter-spacing: 0.05em; margin-bottom: 6px; font-weight: 500; }
+.sc-order pre {
+  font-family: 'Hiragino Sans', 'Yu Gothic UI', 'Meiryo', sans-serif;
+  font-size: 11px; line-height: 1.85;
+  background: #fafafa; border: 0.5px solid #e2e8f0; border-radius: 6px;
+  padding: 12px 14px; white-space: pre-wrap; word-wrap: break-word;
+  color: #1a2332; margin: 0;
+}
+.sc-copy-btn {
+  margin-top: 8px; font-size: 11px; padding: 6px 12px;
+  border-radius: 5px; border: 0.5px solid #c7f0ec;
+  background: #f0faf9; color: #0d6e63; cursor: pointer;
+  font-family: inherit; font-weight: 500;
+  display: inline-flex; align-items: center; gap: 4px;
+}
+.sc-copy-btn:hover { background: #d1faf5; }
+.sc-copy-btn.copied { background: #dcfce7; border-color: #86efac; color: #166534; }
 
 /* High dose warning */
 .high-dose-warning {
@@ -194,29 +228,38 @@ body { font-family: -apple-system, 'Hiragino Sans', 'Yu Gothic UI', 'Meiryo', sa
     <div class="medd-sub" id="medd-sub"></div>
   </div>
 
-  <!-- Conversion table -->
-  <section class="conv-card" id="conv-card" style="display:none">
-    <h3>換算後の用量</h3>
-    <div id="conv-rows"></div>
-  </section>
+  <!-- Result tabs -->
+  <div class="result-tabs" id="result-tabs" style="display:none">
+    <button class="result-tab active" data-tab="oral" onclick="switchResultTab('oral')">📋 経口・貼付・坐剤</button>
+    <button class="result-tab" data-tab="inj" onclick="switchResultTab('inj')">💉 注射・持続皮下注</button>
+  </div>
 
-  <!-- Rescue -->
-  <section class="rescue-card" id="rescue-card" style="display:none">
-    <h3>レスキュー量（1回分・1日量の 1/6）</h3>
-    <div class="rescue-grid" id="rescue-grid"></div>
-    <div class="rescue-note">
-      ※ レスキュー使用が1日4回以上必要なら定時量の増量を検討。1日量の10〜20%増しが目安。
-    </div>
-  </section>
+  <!-- Tab content: 経口・貼付・坐剤 -->
+  <div class="tab-content" id="tab-oral" style="display:none">
+    <section class="conv-card">
+      <h3>換算後の用量</h3>
+      <div id="conv-rows"></div>
+    </section>
 
-  <!-- 持続皮下注 組成案 -->
-  <section class="sc-card-wrap" id="sc-section" style="display:none">
-    <h3>💉 持続皮下注 100mL × 10日分 組成案</h3>
-    <div class="sc-intro">
-      <b>レスキュー20%分を含めた組成</b>。50〜100mLシリンジ／カセットでの持続皮下注用。アンプル組み合わせは在庫に応じて適宜調整してください。
-    </div>
-    <div class="sc-grid" id="sc-grid"></div>
-  </section>
+    <section class="rescue-card">
+      <h3>レスキュー量（1回分・1日量の 1/6）</h3>
+      <div class="rescue-grid" id="rescue-grid"></div>
+      <div class="rescue-note">
+        ※ レスキュー使用が1日4回以上必要なら定時量の増量を検討。1日量の10〜20%増しが目安。
+      </div>
+    </section>
+  </div>
+
+  <!-- Tab content: 注射 -->
+  <div class="tab-content" id="tab-inj" style="display:none">
+    <section class="sc-card-wrap">
+      <h3>💉 持続皮下注 100mL × 10日分 組成案</h3>
+      <div class="sc-intro">
+        <b>レスキュー20%分を含めた組成</b>。50〜100mLシリンジ／カセットでの持続皮下注用。アンプル組み合わせは在庫に応じて適宜調整してください。各カード下部の<b>指示テキスト</b>はそのままカルテに貼り付け可能。
+      </div>
+      <div class="sc-grid" id="sc-grid"></div>
+    </section>
+  </div>
 
   <!-- Empty state -->
   <div class="empty-state" id="empty-state">
@@ -248,8 +291,6 @@ const FORMS = [
   { id:'oxycodone_po',    name:'オキシコドン 経口',      sub:'オキシコンチン・オキノーム',        factor:1.5,   unit:'mg/日',   freq:'徐放1日2回 / 速放6回' },
   { id:'oxycodone_inj',   name:'オキシコドン 注射',      sub:'オキファスト',                     factor:2.25,  unit:'mg/日',   freq:'持続皮下/静注' },
   { id:'fentanyl_fentos', name:'フェントステープ（1日）', sub:'1日貼り換え型',                    factor:30.0,  unit:'mg(1日量)', freq:'1日1回貼り換え' },
-  { id:'fentanyl_duro',   name:'デュロテップMTパッチ',    sub:'3日貼り換え型',                    factor:28.6,  unit:'mg(3日量)', freq:'3日に1回貼り換え' },
-  { id:'fentanyl_inj',    name:'フェンタニル 注射',      sub:'フェンタニル注射液',                factor:100.0, unit:'mg/日',   freq:'持続皮下/静注' },
   { id:'tapentadol_po',   name:'タペンタドール 経口',    sub:'タペンタ',                          factor:0.3,   unit:'mg/日',   freq:'1日2回' },
   { id:'tramadol_po',     name:'トラマドール 経口',      sub:'トラマール・ワントラム',            factor:0.2,   unit:'mg/日',   freq:'1日4回 or 徐放1回' },
   { id:'narsus',          name:'ヒドロモルフォン 経口徐放',sub:'ナルサス',                         factor:5.0,   unit:'mg/日',   freq:'1日1回' },
@@ -288,19 +329,71 @@ const AMPOULES = {
       { mg: 20, vol: 2, label: '20mg/2mL' },
     ],
   },
-  fentanyl_inj: {
-    name: 'フェンタニル注射',
-    ratio: '経口モルヒネ:注射 = 100:1',
-    factor: 100.0,
-    list: [
-      { mg: 0.1,  vol: 2,  label: '0.1mg/2mL' },
-      { mg: 0.25, vol: 5,  label: '0.25mg/5mL' },
-      { mg: 0.5,  vol: 10, label: '0.5mg/10mL' },
-    ],
-  },
 };
 
-// Pick best ampoule combination for target mg (within 100mL syringe)
+// ── Drug display names for order text ───────
+const DRUG_DISPLAY = {
+  morphine_inj:  { full:'モルヒネ持続皮下注射',     drugName:'モルヒネ',         ampName:'塩酸モルヒネ注' },
+  oxycodone_inj: { full:'オキファスト持続皮下注射', drugName:'オキシコドン',     ampName:'オキファスト'   },
+  narvein:       { full:'ナルベイン持続皮下注射',   drugName:'ヒドロモルフォン', ampName:'ナルベイン注'   },
+};
+
+// Generate rate ladder (4 steps in 0.1 mL/h increments around calculated rate)
+function generateLadder(currentRate) {
+  const rounded = Math.max(0.1, Math.round(currentRate * 10) / 10);
+  const start = Math.max(0.1, rounded - 0.2);
+  return [0, 1, 2, 3].map(i => +(start + 0.1 * i).toFixed(1));
+}
+
+// Build clinical order text matching standard PCA SC order format
+function buildOrderText(drugKey, result) {
+  const info = DRUG_DISPLAY[drugKey];
+  const { pick, saline_vol, conc, rate } = result;
+  const isPure = saline_vol < 0.5;
+  const tag = isPure ? '原液' : '希釈';
+
+  const compLine = isPure
+    ? `${info.ampName} ${pick.amp.label} ×${pick.N}A（${fmt(pick.total_mg)}mg/${fmt(pick.total_vol)}mL）`
+    : `${info.ampName} ${pick.amp.label} ×${pick.N}A ＋ 生食 ${fmt(saline_vol)}mL（${fmt(pick.total_mg)}mg/100mL）`;
+
+  const ladder = generateLadder(rate);
+  const ladderText = ladder.map(r => {
+    const mgPerDay = r * conc * 24;
+    return `${r.toFixed(1)}mL/h（${info.drugName} ${fmt(mgPerDay)}mg/日）`;
+  }).join('\n');
+
+  return `《${info.full}（${tag}）》
+主訴・所見：
+
+＜指示＞
+組成：${compLine}
+濃度：${fmt(conc, 2)}mg/mL
+速度：点滴速度 ★mL/h（${info.drugName} ★mg/日）
+レスキュー：★mL/回（1時間分早送り）
+ロックアウト：15分
+
+★点滴速度
+${ladderText}
+
+・・・・・・・・・・・・・・・・・
+《投与デバイス：PCAポンプ使用》
+■ベースアップ：意識清明・RR≧10回を確認して8時間毎に1段階ずつ増量可
+■眠気が強い時：1-2段階減量可
+★点滴速度
+${ladderText}
+■疼痛時頓用：1時間分早送り。効果がないとき2時間分にしても良い
+（RR≧10回なら30分あけて反復可）`;
+}
+
+function copyOrderText(id, btn) {
+  const text = document.getElementById(id).textContent;
+  navigator.clipboard.writeText(text).then(() => {
+    const orig = btn.innerHTML;
+    btn.innerHTML = '✓ コピーしました';
+    btn.classList.add('copied');
+    setTimeout(() => { btn.innerHTML = orig; btn.classList.remove('copied'); }, 1800);
+  }).catch(() => { btn.innerHTML = 'コピー失敗'; });
+}
 function pickAmpouleCombination(target, ampoules) {
   const sorted = [...ampoules].sort((a, b) => b.mg - a.mg);
   let best = null, bestScore = Infinity;
@@ -354,6 +447,8 @@ function renderSCCard(drugKey, drugCfg, result) {
     </div>`;
   }
   const { pick, saline_vol, conc, rate, rescue_mg, rescue_vol, days_2r, daily_inj, target } = result;
+  const orderText = buildOrderText(drugKey, result);
+  const orderTextEscaped = orderText.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
   return `<div class="sc-opt">
     <div class="sc-opt-head">
       <div class="sc-opt-name">${drugCfg.name}</div>
@@ -384,6 +479,11 @@ function renderSCCard(drugKey, drugCfg, result) {
         <div class="sc-metric-sub">2回/日 レスキュー</div>
       </div>
     </div>
+    <div class="sc-order">
+      <div class="sc-order-label">📝 指示テキスト（クリックして全選択→コピー可）</div>
+      <pre id="order-${drugKey}">${orderTextEscaped}</pre>
+      <button class="sc-copy-btn" onclick="copyOrderText('order-${drugKey}', this)">📋 指示テキストをコピー</button>
+    </div>
   </div>`;
 }
 
@@ -393,7 +493,6 @@ function renderSCSection(medd) {
     return renderSCCard(key, cfg, result);
   }).join('');
   document.getElementById('sc-grid').innerHTML = html;
-  document.getElementById('sc-section').style.display = 'block';
 }
 
 // ── Setup drug select ──────────────
@@ -431,9 +530,9 @@ function recalc() {
 
   if (isNaN(dose) || dose <= 0) {
     document.getElementById('medd-display').style.display = 'none';
-    document.getElementById('conv-card').style.display = 'none';
-    document.getElementById('rescue-card').style.display = 'none';
-    document.getElementById('sc-section').style.display = 'none';
+    document.getElementById('result-tabs').style.display = 'none';
+    document.getElementById('tab-oral').style.display = 'none';
+    document.getElementById('tab-inj').style.display = 'none';
     document.getElementById('empty-state').style.display = 'block';
     document.getElementById('high-dose-warning').classList.remove('show');
     return;
@@ -454,8 +553,10 @@ function recalc() {
   // High dose warning
   document.getElementById('high-dose-warning').classList.toggle('show', medd > 200);
 
-  // Conversion table
-  const rows = FORMS.map(target => {
+  // Conversion table (non-injection only)
+  const INJECTION_IDS = new Set(['morphine_inj', 'oxycodone_inj', 'narvein']);
+  const oralForms = FORMS.filter(f => !INJECTION_IDS.has(f.id));
+  const rows = oralForms.map(target => {
     const target_dose = medd / target.factor;
     const isCurrent = target.id === fromForm.id;
     return `<div class="conv-row${isCurrent ? ' current' : ''}">
@@ -467,7 +568,6 @@ function recalc() {
       <div class="conv-freq">${target.freq}</div>
     </div>`;
   }).join('');
-  document.getElementById('conv-card').style.display = 'block';
   document.getElementById('conv-rows').innerHTML = rows;
 
   // Rescue
@@ -487,10 +587,23 @@ function recalc() {
       <div style="font-size:10px;color:#c2410c;margin-top:2px">${r.note}</div>
     </div>`;
   }).join('');
-  document.getElementById('rescue-card').style.display = 'block';
 
   // SC composition section
   renderSCSection(medd);
+
+  // Show result UI with active tab
+  document.getElementById('result-tabs').style.display = 'flex';
+  const activeTab = document.querySelector('.result-tab.active')?.dataset.tab || 'oral';
+  document.getElementById('tab-oral').style.display = activeTab === 'oral' ? 'block' : 'none';
+  document.getElementById('tab-inj').style.display = activeTab === 'inj' ? 'block' : 'none';
+}
+
+// Tab switching
+function switchResultTab(tab) {
+  document.querySelectorAll('.result-tab').forEach(t =>
+    t.classList.toggle('active', t.dataset.tab === tab));
+  document.getElementById('tab-oral').style.display = tab === 'oral' ? 'block' : 'none';
+  document.getElementById('tab-inj').style.display = tab === 'inj' ? 'block' : 'none';
 }
 
 // ── Init ──────────────
