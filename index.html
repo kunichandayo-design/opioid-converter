@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>オピオイド換算表</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: -apple-system, 'Hiragino Sans', 'Yu Gothic UI', 'Meiryo', sans-serif; background: #f5f7fa; min-height: 100vh; color: #1a2332; line-height: 1.65; }
+
+.header { background: linear-gradient(135deg, #831843 0%, #b45309 100%); color: white; padding: 16px 20px; position: sticky; top: 0; z-index: 20; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+.header-row { display: flex; align-items: center; justify-content: space-between; max-width: 820px; margin: 0 auto; }
+.header-title { font-size: 17px; font-weight: 600; display: flex; align-items: center; gap: 8px; }
+.header-sub { font-size: 11px; opacity: 0.78; margin-top: 2px; letter-spacing: 0.04em; }
+
+.container { max-width: 820px; margin: 0 auto; padding: 1rem; }
+
+/* Critical notice */
+.notice-critical {
+  background: #fef2f2; border: 0.5px solid #fecaca; border-left: 4px solid #dc2626;
+  border-radius: 8px; padding: 12px 16px; font-size: 12.5px; color: #7f1d1d;
+  margin-bottom: 1rem; line-height: 1.8;
+}
+.notice-critical b { color: #991b1b; font-weight: 700; }
+
+/* Form section */
+.form-section { background: white; border-radius: 12px; border: 0.5px solid #e2e8f0; padding: 1.2rem 1.3rem; margin-bottom: 12px; }
+.form-section h3 { font-size: 14px; font-weight: 600; color: #1e3a5f; margin-bottom: 14px; padding-bottom: 9px; border-bottom: 0.5px solid #f1f5f9; display: flex; align-items: center; gap: 6px; }
+.form-section h3::before { content: ''; width: 3px; height: 14px; background: #0d6e63; border-radius: 99px; }
+
+.form-group { margin-bottom: 12px; }
+.form-label { font-size: 11.5px; font-weight: 500; color: #64748b; margin-bottom: 5px; display: block; letter-spacing: 0.02em; }
+.form-label .req { color: #dc2626; margin-left: 2px; }
+.form-input, .form-select {
+  width: 100%; padding: 10px 12px; border: 0.5px solid #e2e8f0; border-radius: 7px;
+  font-size: 14px; font-family: inherit; color: #1a2332; background: #fafcff;
+  transition: all 0.15s;
+}
+.form-input:focus, .form-select:focus { outline: none; border-color: #0d6e63; box-shadow: 0 0 0 2px rgba(13,110,99,0.1); background: white; }
+.input-row { display: grid; grid-template-columns: 2fr 1fr; gap: 10px; align-items: end; }
+.dose-wrap { position: relative; }
+.dose-unit { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); font-size: 12px; color: #94a3b8; pointer-events: none; }
+.form-input.dose { padding-right: 60px; font-variant-numeric: tabular-nums; font-weight: 500; font-size: 15px; }
+
+/* MEDD display */
+.medd-display {
+  background: linear-gradient(135deg, #0d6e63 0%, #115e59 100%);
+  color: white; border-radius: 12px; padding: 1.4rem 1.5rem; margin-bottom: 12px;
+  text-align: center;
+}
+.medd-label { font-size: 12px; opacity: 0.85; letter-spacing: 0.06em; margin-bottom: 6px; }
+.medd-value { font-size: 36px; font-weight: 700; font-variant-numeric: tabular-nums; line-height: 1.1; }
+.medd-unit { font-size: 14px; opacity: 0.85; margin-left: 4px; }
+.medd-sub { font-size: 11px; opacity: 0.75; margin-top: 6px; }
+
+/* Conversion table */
+.conv-card { background: white; border-radius: 12px; border: 0.5px solid #e2e8f0; padding: 1.2rem 0; margin-bottom: 12px; overflow: hidden; }
+.conv-card h3 { font-size: 14px; font-weight: 600; color: #1e3a5f; margin-bottom: 10px; padding: 0 1.3rem 9px; border-bottom: 0.5px solid #f1f5f9; display: flex; align-items: center; gap: 6px; }
+.conv-card h3::before { content: ''; width: 3px; height: 14px; background: #b45309; border-radius: 99px; }
+.conv-row {
+  display: grid; grid-template-columns: 1fr auto auto; gap: 14px;
+  padding: 11px 1.3rem; align-items: center;
+  border-bottom: 0.5px solid #f8fafc; transition: background 0.1s;
+}
+.conv-row:last-child { border-bottom: none; }
+.conv-row.current { background: #fff7ed; border-left: 3px solid #b45309; padding-left: calc(1.3rem - 3px); }
+.conv-row.current .conv-name { color: #b45309; }
+.conv-name { font-size: 13.5px; font-weight: 500; }
+.conv-sub { font-size: 11px; color: #94a3b8; margin-top: 2px; }
+.conv-value { font-size: 16px; font-weight: 600; color: #1a2332; font-variant-numeric: tabular-nums; text-align: right; white-space: nowrap; }
+.conv-value-unit { font-size: 11px; color: #94a3b8; font-weight: 400; margin-left: 2px; }
+.conv-freq { font-size: 11px; color: #64748b; text-align: right; white-space: nowrap; min-width: 90px; }
+
+/* Rescue dose */
+.rescue-card {
+  background: #fff7ed; border: 0.5px solid #fdba74; border-radius: 12px;
+  padding: 1.2rem 1.3rem; margin-bottom: 12px;
+}
+.rescue-card h3 { font-size: 13px; font-weight: 600; color: #9a3412; margin-bottom: 10px; }
+.rescue-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; }
+.rescue-item { background: white; border-radius: 8px; padding: 10px 12px; border: 0.5px solid #fed7aa; }
+.rescue-item-name { font-size: 11px; color: #9a3412; font-weight: 500; margin-bottom: 3px; }
+.rescue-item-value { font-size: 17px; font-weight: 600; color: #7c2d12; font-variant-numeric: tabular-nums; }
+.rescue-item-unit { font-size: 11px; color: #c2410c; font-weight: 400; margin-left: 2px; }
+.rescue-note { font-size: 11px; color: #9a3412; margin-top: 10px; line-height: 1.7; }
+
+/* Notes */
+.notes-card { background: white; border-radius: 12px; border: 0.5px solid #e2e8f0; padding: 1.2rem 1.3rem; margin-bottom: 12px; }
+.notes-card h3 { font-size: 13px; font-weight: 600; color: #1e3a5f; margin-bottom: 10px; }
+.notes-card ul { list-style: none; padding: 0; }
+.notes-card li { font-size: 12px; color: #475569; line-height: 1.8; padding: 4px 0 4px 18px; position: relative; }
+.notes-card li::before { content: ''; position: absolute; left: 4px; top: 12px; width: 4px; height: 4px; background: #94a3b8; border-radius: 50%; }
+.notes-card li b { color: #991b1b; font-weight: 600; }
+
+.empty-state { text-align: center; padding: 2.5rem 1rem; color: #94a3b8; font-size: 13px; }
+
+/* SC composition */
+.sc-card-wrap { background: white; border-radius: 12px; border: 0.5px solid #e2e8f0; padding: 1.2rem 1.3rem; margin-bottom: 12px; }
+.sc-card-wrap h3 { font-size: 14px; font-weight: 600; color: #1e3a5f; margin-bottom: 10px; padding-bottom: 9px; border-bottom: 0.5px solid #f1f5f9; display: flex; align-items: center; gap: 6px; }
+.sc-card-wrap h3::before { content: ''; width: 3px; height: 14px; background: #0d6e63; border-radius: 99px; }
+.sc-intro { font-size: 11.5px; color: #64748b; line-height: 1.7; margin-bottom: 14px; padding: 8px 12px; background: #f0faf9; border: 0.5px solid #c7f0ec; border-radius: 6px; }
+.sc-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 12px; }
+.sc-opt {
+  background: linear-gradient(180deg, #fafcff 0%, white 60%);
+  border: 0.5px solid #e2e8f0; border-radius: 10px; padding: 14px 16px;
+}
+.sc-opt.warn { background: #fffbeb; border-color: #fde68a; }
+.sc-opt-head { display: flex; align-items: center; justify-content: space-between; padding-bottom: 8px; margin-bottom: 10px; border-bottom: 0.5px solid #f1f5f9; }
+.sc-opt-name { font-size: 13.5px; font-weight: 600; color: #1a2332; }
+.sc-opt-ratio { font-size: 10.5px; color: #94a3b8; background: #f1f5f9; padding: 2px 7px; border-radius: 99px; }
+.sc-need { font-size: 11.5px; color: #64748b; margin-bottom: 8px; }
+.sc-need b { color: #1a2332; font-weight: 600; font-variant-numeric: tabular-nums; }
+.sc-recipe {
+  background: #fff7ed; border: 0.5px solid #fed7aa; border-radius: 6px;
+  padding: 10px 12px; margin-bottom: 10px; font-size: 12px; color: #7c2d12; line-height: 1.9;
+}
+.sc-recipe b { font-weight: 600; color: #9a3412; font-variant-numeric: tabular-nums; }
+.sc-recipe .plus { display: block; color: #c2410c; font-weight: 500; margin: 1px 0; }
+.sc-recipe .total { display: block; padding-top: 5px; margin-top: 5px; border-top: 0.5px dashed #fdba74; }
+.sc-metrics { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+.sc-metric { background: #f8fafc; border-radius: 6px; padding: 8px 10px; text-align: center; }
+.sc-metric-label { font-size: 10px; color: #64748b; margin-bottom: 3px; letter-spacing: 0.02em; }
+.sc-metric-value { font-size: 15px; font-weight: 600; color: #0d6e63; font-variant-numeric: tabular-nums; line-height: 1.1; }
+.sc-metric-value small { font-size: 10px; color: #94a3b8; font-weight: 400; margin-left: 1px; }
+.sc-metric-sub { font-size: 9.5px; color: #94a3b8; margin-top: 2px; }
+.sc-warn-msg { font-size: 12px; color: #92400e; padding: 10px 12px; background: white; border: 0.5px solid #fde68a; border-radius: 6px; line-height: 1.7; }
+
+/* High dose warning */
+.high-dose-warning {
+  background: #fef2f2; border: 0.5px solid #fecaca; border-left: 4px solid #dc2626;
+  border-radius: 8px; padding: 10px 14px; font-size: 12px; color: #991b1b;
+  margin-bottom: 12px; line-height: 1.7; display: none;
+}
+.high-dose-warning.show { display: block; }
+
+@media (max-width: 600px) {
+  .input-row { grid-template-columns: 1fr; }
+  .conv-row { grid-template-columns: 1fr; gap: 4px; padding: 12px 1.1rem; }
+  .conv-value, .conv-freq { text-align: left; }
+  .medd-value { font-size: 30px; }
+}
+
+@media print {
+  .header { position: static; }
+  body { background: white; }
+  .form-section { display: none; }
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-row">
+    <div>
+      <div class="header-title">💊 オピオイド換算表</div>
+      <div class="header-sub">OPIOID CONVERSION CALCULATOR · JPSC 2020</div>
+    </div>
+  </div>
+</div>
+
+<div class="container">
+
+  <div class="notice-critical">
+    <b>⚠ 必ずお読みください</b><br>
+    本ツールは換算<b>目安</b>を提供する臨床判断支援です。<b>不完全交差耐性</b>のため、オピオイドローテーション時は計算値の<b>25〜50%減量</b>を考慮してください。高齢者・腎機能低下・肝機能低下例ではさらに慎重に。最終判断は必ず患者個別の状態を踏まえて行ってください。
+  </div>
+
+  <!-- Input -->
+  <section class="form-section">
+    <h3>現在のオピオイド</h3>
+    <div class="form-group">
+      <label class="form-label">薬剤・剤形<span class="req">*</span></label>
+      <select class="form-select" id="drug-select"></select>
+    </div>
+    <div class="form-group">
+      <label class="form-label">用量<span class="req">*</span></label>
+      <div class="input-row">
+        <div class="dose-wrap">
+          <input type="number" class="form-input dose" id="dose-input" min="0" step="0.1" placeholder="例：30">
+          <span class="dose-unit" id="dose-unit">mg/日</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="high-dose-warning" id="high-dose-warning">
+    ⚠ <b>高用量（経口モルヒネ換算 200mg/日 超）</b>です。専門医への相談、または緩和ケア医とのカンファランスを検討してください。
+  </div>
+
+  <!-- MEDD -->
+  <div class="medd-display" id="medd-display" style="display:none">
+    <div class="medd-label">経口モルヒネ等価換算（MEDD）</div>
+    <div><span class="medd-value" id="medd-value">0</span><span class="medd-unit">mg/日</span></div>
+    <div class="medd-sub" id="medd-sub"></div>
+  </div>
+
+  <!-- Conversion table -->
+  <section class="conv-card" id="conv-card" style="display:none">
+    <h3>換算後の用量</h3>
+    <div id="conv-rows"></div>
+  </section>
+
+  <!-- Rescue -->
+  <section class="rescue-card" id="rescue-card" style="display:none">
+    <h3>レスキュー量（1回分・1日量の 1/6）</h3>
+    <div class="rescue-grid" id="rescue-grid"></div>
+    <div class="rescue-note">
+      ※ レスキュー使用が1日4回以上必要なら定時量の増量を検討。1日量の10〜20%増しが目安。
+    </div>
+  </section>
+
+  <!-- 持続皮下注 組成案 -->
+  <section class="sc-card-wrap" id="sc-section" style="display:none">
+    <h3>💉 持続皮下注 100mL × 10日分 組成案</h3>
+    <div class="sc-intro">
+      <b>レスキュー20%分を含めた組成</b>。50〜100mLシリンジ／カセットでの持続皮下注用。アンプル組み合わせは在庫に応じて適宜調整してください。
+    </div>
+    <div class="sc-grid" id="sc-grid"></div>
+  </section>
+
+  <!-- Empty state -->
+  <div class="empty-state" id="empty-state">
+    薬剤と用量を入力すると、換算結果が表示されます。
+  </div>
+
+  <!-- Notes -->
+  <section class="notes-card">
+    <h3>📋 臨床メモ</h3>
+    <ul>
+      <li><b>不完全交差耐性</b>：オピオイドローテーション時は、計算値から <b>25〜50% 減量</b> して開始するのが原則。痛みが強い場合でも 25% 減量。</li>
+      <li><b>モルヒネ経口:注射 = 2:1</b>（JPSC 2020 ガイドライン）を採用。施設により 3:1（皮下注）を採用するところもあります。</li>
+      <li><b>フェンタニル貼付剤の貼り換え時</b>：効果発現に12〜24時間かかるため、前のオピオイドは数時間継続。</li>
+      <li><b>腎機能低下例</b>：モルヒネは活性代謝物（M6G）が蓄積するため、<b>オキシコドンまたはフェンタニルへの変更を検討</b>。コデインも腎排泄。</li>
+      <li><b>本ツール非対応</b>：メサドン（用量依存の非線形換算で要専門医対応）、ブプレノルフィン（ノルスパンテープ、慢性疼痛用）。</li>
+      <li><b>レスキュー薬の選択原則</b>：定時投与と同じオピオイドの即放製剤を使用（フェンタニル貼付剤のレスキューはオプソ・オキノーム等のモルヒネ系もしくはアブストラル等）。</li>
+    </ul>
+  </section>
+
+</div>
+
+<script>
+// ── Conversion factors (JPSC 2020 baseline) ──────────────
+// factor: input (mg) × factor = MEDD (mg/day oral morphine equivalent)
+const FORMS = [
+  { id:'morphine_po',     name:'モルヒネ 経口',          sub:'MSコンチン・モルペス・オプソ等',    factor:1.0,   unit:'mg/日',   freq:'徐放1日2回 / 速放6回程度' },
+  { id:'morphine_inj',    name:'モルヒネ 注射（SC/IV）',  sub:'モヒアン等',                       factor:2.0,   unit:'mg/日',   freq:'持続皮下/静注' },
+  { id:'morphine_supp',   name:'モルヒネ 坐剤',          sub:'アンペック坐剤',                   factor:1.5,   unit:'mg/日',   freq:'1日2〜3回' },
+  { id:'oxycodone_po',    name:'オキシコドン 経口',      sub:'オキシコンチン・オキノーム',        factor:1.5,   unit:'mg/日',   freq:'徐放1日2回 / 速放6回' },
+  { id:'oxycodone_inj',   name:'オキシコドン 注射',      sub:'オキファスト',                     factor:2.25,  unit:'mg/日',   freq:'持続皮下/静注' },
+  { id:'fentanyl_fentos', name:'フェントステープ（1日）', sub:'1日貼り換え型',                    factor:30.0,  unit:'mg(1日量)', freq:'1日1回貼り換え' },
+  { id:'fentanyl_duro',   name:'デュロテップMTパッチ',    sub:'3日貼り換え型',                    factor:28.6,  unit:'mg(3日量)', freq:'3日に1回貼り換え' },
+  { id:'fentanyl_inj',    name:'フェンタニル 注射',      sub:'フェンタニル注射液',                factor:100.0, unit:'mg/日',   freq:'持続皮下/静注' },
+  { id:'tapentadol_po',   name:'タペンタドール 経口',    sub:'タペンタ',                          factor:0.3,   unit:'mg/日',   freq:'1日2回' },
+  { id:'tramadol_po',     name:'トラマドール 経口',      sub:'トラマール・ワントラム',            factor:0.2,   unit:'mg/日',   freq:'1日4回 or 徐放1回' },
+  { id:'narsus',          name:'ヒドロモルフォン 経口徐放',sub:'ナルサス',                         factor:5.0,   unit:'mg/日',   freq:'1日1回' },
+  { id:'narrapid',        name:'ヒドロモルフォン 経口速放',sub:'ナルラピド',                       factor:5.0,   unit:'mg/日',   freq:'1日4〜6回' },
+  { id:'narvein',         name:'ヒドロモルフォン 注射',  sub:'ナルベイン',                        factor:25.0,  unit:'mg/日',   freq:'持続皮下/静注' },
+  { id:'codeine_po',      name:'コデイン 経口',          sub:'リン酸コデイン',                    factor:0.1,   unit:'mg/日',   freq:'1日4〜6回（上限240mg）' },
+];
+
+// ── Injection ampoules (Japan) ───────────────
+const AMPOULES = {
+  morphine_inj: {
+    name: 'モルヒネ注射',
+    ratio: '経口:注射 = 2:1',
+    factor: 2.0,
+    list: [
+      { mg: 10,  vol: 1, label: '10mg/1mL' },
+      { mg: 50,  vol: 5, label: '50mg/5mL' },
+      { mg: 200, vol: 5, label: '200mg/5mL（高濃度）' },
+    ],
+  },
+  oxycodone_inj: {
+    name: 'オキシコドン注射（オキファスト）',
+    ratio: '経口:注射 = 4:3',
+    factor: 2.25,
+    list: [
+      { mg: 10, vol: 1, label: '10mg/1mL' },
+      { mg: 50, vol: 5, label: '50mg/5mL' },
+    ],
+  },
+  narvein: {
+    name: 'ヒドロモルフォン注射（ナルベイン）',
+    ratio: '経口モルヒネ:注射 = 25:1',
+    factor: 25.0,
+    list: [
+      { mg: 2,  vol: 1, label: '2mg/1mL' },
+      { mg: 20, vol: 2, label: '20mg/2mL' },
+    ],
+  },
+  fentanyl_inj: {
+    name: 'フェンタニル注射',
+    ratio: '経口モルヒネ:注射 = 100:1',
+    factor: 100.0,
+    list: [
+      { mg: 0.1,  vol: 2,  label: '0.1mg/2mL' },
+      { mg: 0.25, vol: 5,  label: '0.25mg/5mL' },
+      { mg: 0.5,  vol: 10, label: '0.5mg/10mL' },
+    ],
+  },
+};
+
+// Pick best ampoule combination for target mg (within 100mL syringe)
+function pickAmpouleCombination(target, ampoules) {
+  const sorted = [...ampoules].sort((a, b) => b.mg - a.mg);
+  let best = null, bestScore = Infinity;
+  for (const amp of sorted) {
+    const N = Math.max(1, Math.ceil(target / amp.mg));
+    const total_mg = N * amp.mg;
+    const total_vol = N * amp.vol;
+    if (total_vol > 50 || N > 30) continue;
+    const waste = (total_mg - target) / target;
+    const score = waste * 8 + N * 0.4;
+    if (score < bestScore) {
+      bestScore = score;
+      best = { amp, N, total_mg, total_vol };
+    }
+  }
+  return best;
+}
+
+// Compute SC composition for one drug
+function computeSCComposition(medd, drugCfg) {
+  const daily_inj = medd / drugCfg.factor;
+  const target = daily_inj * 10 * 1.2; // 10 days + 20% rescue buffer
+  const pick = pickAmpouleCombination(target, drugCfg.list);
+  if (!pick) return { error: true, daily_inj, target };
+  const conc = pick.total_mg / 100;
+  const rate = daily_inj / 24 / conc;
+  const rescue_mg = daily_inj / 6;
+  const rescue_vol = rescue_mg / conc;
+  // Practical days with 2 rescues/day
+  const daily_use_2r = rate * 24 + 2 * rescue_vol;
+  const days_2r = 100 / daily_use_2r;
+  return {
+    daily_inj, target, pick,
+    saline_vol: 100 - pick.total_vol,
+    conc, rate, rescue_mg, rescue_vol, days_2r
+  };
+}
+
+function renderSCCard(drugKey, drugCfg, result) {
+  if (result.error) {
+    return `<div class="sc-opt warn">
+      <div class="sc-opt-head">
+        <div class="sc-opt-name">${drugCfg.name}</div>
+        <div class="sc-opt-ratio">${drugCfg.ratio}</div>
+      </div>
+      <div class="sc-warn-msg">
+        ⚠ この用量では100mLに収まりません。<br>
+        必要量：<b>${fmt(result.target)} mg</b>（1日 ${fmt(result.daily_inj)} mg × 10日 × 1.2倍）<br>
+        → 別容量シリンジの使用、または短い充填期間（5〜7日）、別オピオイドへの切り替えを検討。
+      </div>
+    </div>`;
+  }
+  const { pick, saline_vol, conc, rate, rescue_mg, rescue_vol, days_2r, daily_inj, target } = result;
+  return `<div class="sc-opt">
+    <div class="sc-opt-head">
+      <div class="sc-opt-name">${drugCfg.name}</div>
+      <div class="sc-opt-ratio">${drugCfg.ratio}</div>
+    </div>
+    <div class="sc-need">
+      必要量（10日分 + 20%）：<b>${fmt(target)} mg</b>
+      <span style="color:#94a3b8">　 1日 ${fmt(daily_inj)} mg × 10日</span>
+    </div>
+    <div class="sc-recipe">
+      <span><b>${pick.amp.label}</b> × <b>${pick.N}A</b> = <b>${fmt(pick.total_mg)} mg / ${fmt(pick.total_vol)} mL</b></span>
+      <span class="plus">＋ 生食 <b>${fmt(saline_vol)} mL</b></span>
+      <span class="total">＝ 計 <b>100 mL</b>（濃度 <b>${fmt(conc, 2)} mg/mL</b>）</span>
+    </div>
+    <div class="sc-metrics">
+      <div class="sc-metric">
+        <div class="sc-metric-label">持続速度</div>
+        <div class="sc-metric-value">${fmt(rate, 2)}<small>mL/h</small></div>
+      </div>
+      <div class="sc-metric">
+        <div class="sc-metric-label">レスキュー</div>
+        <div class="sc-metric-value">${fmt(rescue_vol, 2)}<small>mL/回</small></div>
+        <div class="sc-metric-sub">${fmt(rescue_mg)} mg</div>
+      </div>
+      <div class="sc-metric">
+        <div class="sc-metric-label">想定持続</div>
+        <div class="sc-metric-value">${fmt(days_2r, 1)}<small>日</small></div>
+        <div class="sc-metric-sub">2回/日 レスキュー</div>
+      </div>
+    </div>
+  </div>`;
+}
+
+function renderSCSection(medd) {
+  const html = Object.entries(AMPOULES).map(([key, cfg]) => {
+    const result = computeSCComposition(medd, cfg);
+    return renderSCCard(key, cfg, result);
+  }).join('');
+  document.getElementById('sc-grid').innerHTML = html;
+  document.getElementById('sc-section').style.display = 'block';
+}
+
+// ── Setup drug select ──────────────
+function initDrugSelect() {
+  const sel = document.getElementById('drug-select');
+  FORMS.forEach(f => {
+    const opt = document.createElement('option');
+    opt.value = f.id;
+    opt.textContent = `${f.name}（${f.sub}）`;
+    sel.appendChild(opt);
+  });
+  sel.value = 'morphine_po';
+  sel.addEventListener('change', recalc);
+}
+
+function updateUnit() {
+  const sel = document.getElementById('drug-select');
+  const form = FORMS.find(f => f.id === sel.value);
+  document.getElementById('dose-unit').textContent = form.unit;
+}
+
+// ── Calculate ──────────────
+function fmt(n, digits = 1) {
+  if (n === 0) return '0';
+  if (n < 0.1) return n.toFixed(2);
+  if (n < 10) return n.toFixed(digits);
+  return Math.round(n).toString();
+}
+
+function recalc() {
+  updateUnit();
+  const sel = document.getElementById('drug-select');
+  const dose = parseFloat(document.getElementById('dose-input').value);
+  const fromForm = FORMS.find(f => f.id === sel.value);
+
+  if (isNaN(dose) || dose <= 0) {
+    document.getElementById('medd-display').style.display = 'none';
+    document.getElementById('conv-card').style.display = 'none';
+    document.getElementById('rescue-card').style.display = 'none';
+    document.getElementById('sc-section').style.display = 'none';
+    document.getElementById('empty-state').style.display = 'block';
+    document.getElementById('high-dose-warning').classList.remove('show');
+    return;
+  }
+
+  document.getElementById('empty-state').style.display = 'none';
+
+  const medd = dose * fromForm.factor;
+
+  // MEDD display
+  document.getElementById('medd-display').style.display = 'block';
+  document.getElementById('medd-value').textContent = fmt(medd);
+  const medd25 = medd * 0.75;
+  const medd50 = medd * 0.5;
+  document.getElementById('medd-sub').textContent =
+    `ローテーション開始量目安：25%減 ${fmt(medd25)} 〜 50%減 ${fmt(medd50)} mg/日（経口モルヒネ換算）`;
+
+  // High dose warning
+  document.getElementById('high-dose-warning').classList.toggle('show', medd > 200);
+
+  // Conversion table
+  const rows = FORMS.map(target => {
+    const target_dose = medd / target.factor;
+    const isCurrent = target.id === fromForm.id;
+    return `<div class="conv-row${isCurrent ? ' current' : ''}">
+      <div>
+        <div class="conv-name">${target.name}${isCurrent ? '（現在）' : ''}</div>
+        <div class="conv-sub">${target.sub}</div>
+      </div>
+      <div class="conv-value">${fmt(target_dose)}<span class="conv-value-unit"> ${target.unit}</span></div>
+      <div class="conv-freq">${target.freq}</div>
+    </div>`;
+  }).join('');
+  document.getElementById('conv-card').style.display = 'block';
+  document.getElementById('conv-rows').innerHTML = rows;
+
+  // Rescue
+  const rescue_medd = medd / 6;
+  const rescueItems = [
+    { name: 'オプソ内服液',       drug: 'morphine_po',    note: 'モルヒネ速放' },
+    { name: 'オキノーム散',       drug: 'oxycodone_po',   note: 'オキシコドン速放' },
+    { name: 'ナルラピド錠',       drug: 'narrapid',       note: 'ヒドロモルフォン速放' },
+    { name: 'モルヒネ注 早送り',  drug: 'morphine_inj',   note: '持続皮下/静注の早送り' },
+  ];
+  document.getElementById('rescue-grid').innerHTML = rescueItems.map(r => {
+    const f = FORMS.find(x => x.id === r.drug);
+    const amount = rescue_medd / f.factor;
+    return `<div class="rescue-item">
+      <div class="rescue-item-name">${r.name}</div>
+      <div class="rescue-item-value">${fmt(amount)}<span class="rescue-item-unit">mg/回</span></div>
+      <div style="font-size:10px;color:#c2410c;margin-top:2px">${r.note}</div>
+    </div>`;
+  }).join('');
+  document.getElementById('rescue-card').style.display = 'block';
+
+  // SC composition section
+  renderSCSection(medd);
+}
+
+// ── Init ──────────────
+initDrugSelect();
+updateUnit();
+document.getElementById('dose-input').addEventListener('input', recalc);
+</script>
+</body>
+</html>
